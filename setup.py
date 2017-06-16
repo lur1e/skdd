@@ -1,13 +1,29 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
+
+from codecs import open
+from os import path
+
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
-  name = 'mypackage',
-  packages = ['mypackage'], # this must be the same as the name above
-  version = '0.1',
-  description = 'A random test lib',
-  author = 'Peter Downs',
-  author_email = 'peterldowns@gmail.com',
-  url = 'https://github.com/peterldowns/mypackage', # use the URL to the github repo
-  download_url = 'https://github.com/peterldowns/mypackage/archive/0.1.tar.gz', # I'll explain this in a second
-  keywords = ['testing', 'logging', 'example'], # arbitrary keywords
-  classifiers = [],
+    name='skdd',
+    version='0.1',
+    description='Test project',
+    long_description=long_description,
+    url='https://github.com/rlurye/skdd',
+    author='Roman Lurye',
+    author_email='rm.lurye@gmail.com',
+    license='MIT',
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Build Tools',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3.5',
+    ],
+    keywords='semantic knowledge discovery database',
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 )
