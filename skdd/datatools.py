@@ -1,20 +1,25 @@
 import xlrd
 from skdd.config import logger
 
-def get_data(filename):
+def get_data(filename, view='row'):
     logger.info("Getting file: "+filename)
     filetype = filename.rpartition('.')[-1]
     if filetype == "xlsx" or "xls":
-        return excel_import(filename)
+        return excel_import(filename,view)
     return None
 
-def excel_import(filename):
+
+def excel_import(filename, view='row'):
     l = []
     xl_workbook = xlrd.open_workbook(filename)
     xl_sheet = xl_workbook.sheet_by_index(0) #1st list only
     logger.info('Open Excel workbook %s, sheetname: %s' % (filename, xl_sheet.name))
-    for row_ind in range(0, xl_sheet.nrows):
-        l.append(xl_sheet.row_values(row_ind))
+    if view == 'row':
+        for row_ind in range(0, xl_sheet.nrows):
+            l.append(xl_sheet.row_values(row_ind))
+    elif view == "col":
+        for col_ind in range(0, xl_sheet.ncols):
+            l.append(xl_sheet.col_values(col_ind))
     logger.info(l)
     #printsheet(xl_sheet)
     return l

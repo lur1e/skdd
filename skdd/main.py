@@ -13,15 +13,19 @@ if __name__ == "__main__":
     else:
         filename = 'test.xlsx'
 
-    table = datatools.get_data(filename)
-    nrows = len(table)
-    ncols = 0
-    if nrows:
-         ncols = len(table[0])
+    tablecol = datatools.get_data(filename, view='col')
+    tablerow = datatools.get_data(filename, view='row')
+    print(tablecol)
+    print(tablerow)
+    ncols = len(tablecol)
+    nrows = 0
     if ncols:
+         nrows = len(tablecol[0])
+    if nrows:
          logger.info('Stats: rows: %s, columns: %s' % (nrows, ncols))
          H = core.smth(nrows)
          core.smth_usl(nrows,H)
+         core.columnrules(tablecol, nrows, 2)
          #comb_list = util.combinations(ncols)
 
 #

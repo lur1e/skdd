@@ -2,6 +2,9 @@ import itertools
 
 import math
 
+from skdd.config import logger
+
+
 def combinations(ncols):
     l = list(range(0, ncols))
     comb_list = []
@@ -57,6 +60,34 @@ def extended_part(part):
         element.extend(value * [key + 1])
     return element
 
+
+def generate_rules(ncols, col_ind):
+    logger.debug("Generate rules start")
+    l = list(range(0, ncols))
+    for value, key in enumerate(l):
+        l[key] = str(value)+'c'
+    logger.debug("Generate rules, list of columns: " + str(l))
+    rules = []
+    sublist = list(l)
+    sublist.remove(str(col_ind)+'c')
+    rules.append([str(col_ind)+'c'])
+    for L in range(0, len(sublist) + 1):
+        for subset in itertools.combinations(sublist, L):
+            if subset:
+                logger.debug("Generate rules, next rule: "+ str(list(subset))+ " -> "+ str(col_ind)+'c')
+                rules.append(list(subset))
+    logger.debug("Generated rules: " + str(rules))
+    logger.debug("Generate rules end.")
+    return rules #list of lists
+
+def dedup(list):
+    new_k = []
+    for elem in list:
+        if elem not in new_k:
+            new_k.append(elem)
+    return new_k
+
+#generate_rules(5,4)
 #
 #print(list(accel_asc(4)))
 # partition(1)
