@@ -51,6 +51,12 @@ def partition(num):
     #    print(p)
     return result
 
+def extended_part(part):
+    element = []
+    for key, value in enumerate(reversed(part)):
+        element.extend(value * [key + 1])
+    return element
+
 #
-# print(list(accel_asc(5)))
+#print(list(accel_asc(4)))
 # partition(1)

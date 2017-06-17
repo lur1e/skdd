@@ -1,7 +1,7 @@
 from skdd import datatools
 
 import sys
-import skdd.core
+import skdd.core as core
 import skdd.util as util
 
 from skdd.config import logger
@@ -20,7 +20,9 @@ if __name__ == "__main__":
          ncols = len(table[0])
     if ncols:
          logger.info('Stats: rows: %s, columns: %s' % (nrows, ncols))
-         comb_list = util.combinations(ncols)
+         H = core.smth(nrows)
+         core.smth_usl(nrows,H)
+         #comb_list = util.combinations(ncols)
 
 #
 # xl_workbook = xlrd.open_workbook(file_name)
