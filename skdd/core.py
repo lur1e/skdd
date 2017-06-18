@@ -1,10 +1,12 @@
 import math
 from collections import Counter
 
+import skdd.config as config
 from skdd import util, datatools
 from skdd.config import logger
-import skdd.config as config
 
+
+# in: data; out: list of valid rules in data
 def analysis(filename):
     tablecol = datatools.get_data(filename, view='col')
     datatools.get_data(filename, view='row', log=True)  # just for print
@@ -15,15 +17,20 @@ def analysis(filename):
         nrows = len(tablecol[0])
     if nrows:
         logger.info('Stats: rows: %s, columns: %s' % (nrows, ncols))
-        H = smth(nrows)
+        H = bin_ent(nrows)
+        logger.info("H:"+str(H))
         MH = smth_usl(nrows, H)
-        print("MH:", MH)
+        logger.info("MH:"+str(MH))
         # valid_c_rules = core.columnrules(tablecol, nrows, 2, MH)
         # print("valid_c_rules:",valid_c_rules)
         for col_ind in range(0, ncols):
             list_valid_rules.append(columnrules(tablecol, nrows, col_ind, MH))
+    for ind, ind_v_rules in enumerate(list_valid_rules):
+        logger.info("--Rules for"+str(ind)+"arg: "+str(list_valid_rules[ind]))
     return list_valid_rules
 
+
+#get q_inf for value in list, used in 1st stage
 def q_inf(list, value):
     base = len(list)
     value = list.count(value)
@@ -34,15 +41,14 @@ def q_inf(list, value):
     return l
 
 
-# q_inf([1,1,2],2)
-
-def smth(row_count):
+#1st stage; average entropy for table,
+def bin_ent(row_count):
     d = {}
     for el in range(1, row_count + 1):
         # print(el)
-        size_part = util.partition(el)
+        ext_part = util.partition(el)
         MH = 0
-        for part in size_part:
+        for part in ext_part:
             ExpH = 0
             logger.debug("Next partition: " + str(part))
             # print(part)
@@ -84,7 +90,6 @@ def p_coef(extended_part):
     logger.debug("    ----------------------------------")
     return result
 
-
 def smth_usl(row_count, dH):
     l = util.accel_asc(row_count)
     MH = 0
@@ -119,7 +124,7 @@ def columnrules(tablecol, nrows, arg_ind, mh):
         # list of columns in rule
         col_Idx = [int(c_column[:-1]) for c_column in rule]  # index is integer
         # print("col_Idx:", col_Idx)
-        #TODO: unique self-rule actions
+        # TODO: unique self-rule actions
         ruletable = []
         if len(col_Idx) == 1 and col_Idx[0] == arg_ind:
             logger.debug("Column rules; Detected self-rule: " + str(col_Idx[0]) + "rule = " + str(arg_ind) +
@@ -141,14 +146,14 @@ def columnrules(tablecol, nrows, arg_ind, mh):
                 ruletable.append(ruletablerow)
             Hy = rule_properties(tablecol, nrows, unique_rr, col_Idx,
                                  unique_args, arg_ind, ruletable, rules_rows)
-            #print(Hy)
+            # print(Hy)
             if Hy > mh:
-                #TODO: узнать у Юли о дополнительной проверке
-                logger.debug("   VALID!   rule:"+str(rule)+"  --  Hy > Mh:"+str(Hy)+">"+str(mh))
+                # TODO: узнать у Юли о дополнительной проверке
+                logger.debug("   VALID!   rule:" + str(rule) + "  --  Hy > Mh:" + str(Hy) + ">" + str(mh))
                 valid_rules.append(rule)
             else:
-                logger.debug("   rule:"+str(rule)+"  --  Hy < Mh:"+str(Hy)+"<"+str(mh))
-        logger.debug("Column rules:"+str(ruletable)+" for rule: "+str(rule)+"-> "+str(arg_ind)+'c')
+                logger.debug("   rule:" + str(rule) + "  --  Hy < Mh:" + str(Hy) + "<" + str(mh))
+        logger.debug("Column rules:" + str(ruletable) + " for rule: " + str(rule) + "-> " + str(arg_ind) + 'c')
         logger.debug("Column rules: ---------------------------------------------------------")
         # print(ruletable)
         # print("---------------------------------------------------------")
@@ -159,7 +164,7 @@ def columnrules(tablecol, nrows, arg_ind, mh):
 def q_inf_table(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
     logger.debug("    Quantity of information in table start")
     # print("строк:", nrows, "правило", rulerow, "индексы правила:", col_Idx, "arg: ",arg, "arg_ind:",arg_ind)
-    c_rulerow = count_rulerow(tablecol,nrows,rulerow,col_Idx,arg,arg_ind)
+    c_rulerow = count_rulerow(tablecol, nrows, rulerow, col_Idx, arg, arg_ind)
     value = c_rulerow['value']
     base = c_rulerow['base']
     # print(base, value, arg)
@@ -170,11 +175,12 @@ def q_inf_table(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
     l = config.log11
     if not (base == 1 and value == 1):
         l = math.log(value, base)
-    logger.debug("    QoI: qoi = "+str(l)+
-                 "; arg = "+str(arg)+
-                 "; rulerow = "+str(rulerow)+";")
+    logger.debug("    QoI: qoi = " + str(l) +
+                 "; arg = " + str(arg) +
+                 "; rulerow = " + str(rulerow) + ";")
     logger.debug("    Quantity of information in table end")
     return l
+
 
 def count_rulerow(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
     # start
@@ -190,26 +196,27 @@ def count_rulerow(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
                 value += 1
     return {"base": base, "value": value}
 
+
 def rule_properties(tablecol, nrows, unique_rr, col_Idx, unique_args, arg_ind, ruletable, rules_rows):
-    #TODO: doesn't work on self-property
+    # TODO: doesn't work on self-property
     Hch = []
     prob = []
     for r_ind, rulerow in enumerate(unique_rr):
         h_row = 0
         for a_ind, arg in enumerate(unique_args):
-            c_rulerow = count_rulerow(tablecol,nrows,rulerow,col_Idx,arg,arg_ind)
-            #print(c_rulerow)
+            c_rulerow = count_rulerow(tablecol, nrows, rulerow, col_Idx, arg, arg_ind)
+            # print(c_rulerow)
             cellinf = ruletable[r_ind][a_ind]
-            #print(cellinf)
-            h_row_el = ruletable[r_ind][a_ind]*(c_rulerow['value']/c_rulerow['base'])
+            # print(cellinf)
+            h_row_el = ruletable[r_ind][a_ind] * (c_rulerow['value'] / c_rulerow['base'])
             h_row += h_row_el
-        #print("     ", r_ind, rulerow, h_row)
+        # print("     ", r_ind, rulerow, h_row)
         Hch.append(h_row)
         prob.append(rules_rows.count(rulerow) / nrows)
-    #print(Hch)
-    #print(prob)
-    Exp = [Hch[ind]*prob[ind] for ind in range(0, len(Hch))]
-    #print(Exp)
+    # print(Hch)
+    # print(prob)
+    Exp = [Hch[ind] * prob[ind] for ind in range(0, len(Hch))]
+    # print(Exp)
     Hy = sum(Exp)
-    #print("Hy:",Hy)
+    # print("Hy:",Hy)
     return Hy

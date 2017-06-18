@@ -1,7 +1,9 @@
 import itertools
+from collections import Counter
+
+import math
 
 from skdd.config import logger
-
 
 # generate all rules for number of columns
 def combinations(ncols):
@@ -51,6 +53,28 @@ def partition(num):
     return result
 
 
+def patition_coef(extended_part):
+    n = len(extended_part)
+    k = len(Counter(extended_part).keys())
+    logger.debug("    k:" + str(k))
+    p = 1
+    number_of_elements = Counter(extended_part).values()
+    logger.debug("    NOE:" + str(number_of_elements))
+    for pc in number_of_elements:
+        logger.debug("    p:" + str(pc))
+        p *= math.factorial(pc)
+    s = 1
+    number_of_v = Counter(list(Counter(extended_part).values())).values()
+    for sc in number_of_v:
+        logger.debug("    s:" + str(sc))
+        s *= math.factorial(sc)
+    logger.debug("    n:" + str(n))
+    result = math.factorial(n) * math.factorial(n) / ((n ** n) * math.factorial(n - k) * p * s)
+    logger.debug("    " + str(result))
+    logger.debug("    ----------------------------------")
+    return result
+
+
 # extended partition of number
 def extended_part(part):
     element = []
@@ -80,7 +104,8 @@ def generate_rules(ncols, col_ind):
     return rules  # list of lists
 
 
-def dedup(list):  # remove dup from list: (when set() not working)
+# remove dup from list: (when set() not working)
+def dedup(list):
     new_k = []
     for elem in list:
         if elem not in new_k:
