@@ -3,13 +3,13 @@ from collections import Counter
 
 from skdd import util
 from skdd.config import logger
-
+import skdd.config as config
 
 def q_inf(list, value):
     base = len(list)
     value = list.count(value)
     if base == 1 and value == 1:
-        return 1
+        return config.log11
     l = math.log(value, base)
     logger.debug("log(base=%s, value=%s) = %s " % (base, value, l))
     return l
@@ -84,7 +84,7 @@ def smth_usl(row_count, dH):
     return MH
 
 
-def columnrules(tablecol, nrows, arg_ind):
+def columnrules(tablecol, nrows, arg_ind, mh):
     logger.debug("Column rules start")
     maincol = tablecol[arg_ind]
     len_maincol = len(maincol)
@@ -95,11 +95,12 @@ def columnrules(tablecol, nrows, arg_ind):
     logger.debug("Column rules, prob = " + str(prob))
     # generate rules
     rules = util.generate_rules(len(tablecol), arg_ind)
+    valid_rules = []
     for rule in rules:
         # list of columns in rule
         col_Idx = [int(c_column[:-1]) for c_column in rule]  # index is integer
         # print("col_Idx:", col_Idx)
-        # unique self-rule
+        #TODO: unique self-rule actions
         ruletable = []
         if len(col_Idx) == 1 and col_Idx[0] == arg_ind:
             logger.debug("Column rules; Detected self-rule: " + str(col_Idx[0]) + "rule = " + str(arg_ind) +
@@ -121,13 +122,19 @@ def columnrules(tablecol, nrows, arg_ind):
                 ruletable.append(ruletablerow)
             Hy = rule_properties(tablecol, nrows, unique_rr, col_Idx,
                                  unique_args, arg_ind, ruletable, rules_rows)
-
-
+            #print(Hy)
+            if Hy > mh:
+                #TODO: узнать у Юли о дополнительной проверке
+                logger.debug("   VALID!   rule:"+str(rule)+"  --  Hy > Mh:"+str(Hy)+">"+str(mh))
+                valid_rules.append(rule)
+            else:
+                logger.debug("   rule:"+str(rule)+"  --  Hy < Mh:"+str(Hy)+"<"+str(mh))
         logger.debug("Column rules:"+str(ruletable)+" for rule: "+str(rule)+"-> "+str(arg_ind)+'c')
         logger.debug("Column rules: ---------------------------------------------------------")
         # print(ruletable)
         # print("---------------------------------------------------------")
     logger.debug("Column rules end")
+    return valid_rules
 
 
 def q_inf_table(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
@@ -141,7 +148,7 @@ def q_inf_table(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
         logger.debug("    QoI: value == 0 or base == 0")
         logger.debug("    Quantity of information in table end")
         return 0
-    l = 1
+    l = config.log11
     if not (base == 1 and value == 1):
         l = math.log(value, base)
     logger.debug("    QoI: qoi = "+str(l)+
@@ -170,27 +177,32 @@ def rule_properties(tablecol, nrows, unique_rr, col_Idx, unique_args, arg_ind, r
     #старт какой-то неверной жопы, спросить у Юли
     Hch = []
     for r_ind, rulerow in enumerate(unique_rr):
+        h_row = 0
         for a_ind, arg in enumerate(unique_args):
             c_rulerow = count_rulerow(tablecol,nrows,rulerow,col_Idx,arg,arg_ind)
             #print(c_rulerow)
             cellinf = ruletable[r_ind][a_ind]
             #print(cellinf)
-            if cellinf:
-                Hch.append(ruletable[r_ind][a_ind]*(c_rulerow['value']/c_rulerow['base']))
-    print(Hch)
+            h_row_el = ruletable[r_ind][a_ind]*(c_rulerow['value']/c_rulerow['base'])
+            h_row += h_row_el
+            # if cellinf:
+            #     hrow+=
+        #print("     ", r_ind, rulerow, h_row)
+        Hch.append(h_row)
+    #print(Hch)
     #конец какой-то неверной жопы
     #prob
     #TODO: внести в один цикл!!
     prob = []
     for r_ind, rulerow in enumerate(unique_rr):
         prob.append(rules_rows.count(rulerow) / nrows)
-    print(prob)
+    #print(prob)
     #Exp
     Exp = [Hch[ind]*prob[ind] for ind in range(0, len(Hch))]
-    print(Exp)
+    #print(Exp)
     #Hy
     Hy = sum(Exp)
-    print(Hy)
+    #print("Hy:",Hy)
     return Hy
 
 

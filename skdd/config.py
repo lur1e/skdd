@@ -1,5 +1,7 @@
 import logging
 
+log11 = 0
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s:[%(threadName)-12.12s]:[%(levelname)-5.5s]: %(message)s")

@@ -11,12 +11,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = 'test.xlsx'
+        filename = 'nasa.xlsx'
 
     tablecol = datatools.get_data(filename, view='col')
     tablerow = datatools.get_data(filename, view='row')
     print(tablecol)
-    print(tablerow)
+    #print(tablerow)
     ncols = len(tablecol)
     nrows = 0
     if ncols:
@@ -24,9 +24,19 @@ if __name__ == "__main__":
     if nrows:
          logger.info('Stats: rows: %s, columns: %s' % (nrows, ncols))
          H = core.smth(nrows)
-         core.smth_usl(nrows,H)
-         core.columnrules(tablecol, nrows, 2)
-         #comb_list = util.combinations(ncols)
+         MH = core.smth_usl(nrows,H)
+         print("MH:",MH)
+         #valid_c_rules = core.columnrules(tablecol, nrows, 2, MH)
+         #print("valid_c_rules:",valid_c_rules)
+         list_valid_rules = []
+         for col_ind in range(0, ncols):
+             list_valid_rules.append(core.columnrules(tablecol, nrows, col_ind, MH))
+         for ind, ind_v_rules in enumerate(list_valid_rules):
+             print("rules for", ind, "arg: ", list_valid_rules[ind])
+
+
+
+             #comb_list = util.combinations(ncols)
 
 #
 # xl_workbook = xlrd.open_workbook(file_name)
