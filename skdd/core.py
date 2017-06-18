@@ -1,9 +1,28 @@
 import math
 from collections import Counter
 
-from skdd import util
+from skdd import util, datatools
 from skdd.config import logger
 import skdd.config as config
+
+def analysis(filename):
+    tablecol = datatools.get_data(filename, view='col')
+    datatools.get_data(filename, view='row', log=True)  # just for print
+    ncols = len(tablecol)
+    nrows = 0
+    list_valid_rules = []
+    if ncols:
+        nrows = len(tablecol[0])
+    if nrows:
+        logger.info('Stats: rows: %s, columns: %s' % (nrows, ncols))
+        H = smth(nrows)
+        MH = smth_usl(nrows, H)
+        print("MH:", MH)
+        # valid_c_rules = core.columnrules(tablecol, nrows, 2, MH)
+        # print("valid_c_rules:",valid_c_rules)
+        for col_ind in range(0, ncols):
+            list_valid_rules.append(columnrules(tablecol, nrows, col_ind, MH))
+    return list_valid_rules
 
 def q_inf(list, value):
     base = len(list)
@@ -11,7 +30,7 @@ def q_inf(list, value):
     if base == 1 and value == 1:
         return config.log11
     l = math.log(value, base)
-    logger.debug("log(base=%s, value=%s) = %s " % (base, value, l))
+    logger.debug("QI: log(base=%s, value=%s) = %s " % (base, value, l))
     return l
 
 
@@ -172,10 +191,9 @@ def count_rulerow(tablecol, nrows, rulerow, col_Idx, arg, arg_ind):
     return {"base": base, "value": value}
 
 def rule_properties(tablecol, nrows, unique_rr, col_Idx, unique_args, arg_ind, ruletable, rules_rows):
-    #doesn't work on self-property
-    #print(unique_rr)
-    #старт какой-то неверной жопы, спросить у Юли
+    #TODO: doesn't work on self-property
     Hch = []
+    prob = []
     for r_ind, rulerow in enumerate(unique_rr):
         h_row = 0
         for a_ind, arg in enumerate(unique_args):
@@ -185,24 +203,13 @@ def rule_properties(tablecol, nrows, unique_rr, col_Idx, unique_args, arg_ind, r
             #print(cellinf)
             h_row_el = ruletable[r_ind][a_ind]*(c_rulerow['value']/c_rulerow['base'])
             h_row += h_row_el
-            # if cellinf:
-            #     hrow+=
         #print("     ", r_ind, rulerow, h_row)
         Hch.append(h_row)
-    #print(Hch)
-    #конец какой-то неверной жопы
-    #prob
-    #TODO: внести в один цикл!!
-    prob = []
-    for r_ind, rulerow in enumerate(unique_rr):
         prob.append(rules_rows.count(rulerow) / nrows)
+    #print(Hch)
     #print(prob)
-    #Exp
     Exp = [Hch[ind]*prob[ind] for ind in range(0, len(Hch))]
     #print(Exp)
-    #Hy
     Hy = sum(Exp)
     #print("Hy:",Hy)
     return Hy
-
-

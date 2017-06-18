@@ -3,7 +3,7 @@ import logging
 log11 = 0
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s:[%(threadName)-12.12s]:[%(levelname)-5.5s]: %(message)s")
 
 fh = logging.FileHandler('logger.log')
